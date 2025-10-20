@@ -41,10 +41,10 @@ def build_prompt(system_prompt: str, user_prompt: str, tokenizer):
 def run_eval(args):
     # Choose model
     scale2id = {
-        "1b": "meta-llama/Llama-3.2-1B",
-        "3b": "meta-llama/Llama-3.2-3B",
+        "1b": "meta-llama/Llama-3.2-1B-Instruct",
+        "3b": "meta-llama/Llama-3.2-3B-Instruct",
         "8b": "meta-llama/Llama-3.1-8B-Instruct",
-        "70b": "meta-llama/Llama-3.1-70B",
+        "70b": "meta-llama/Llama-3.1-70B-Instruct",
     }
     model_path = scale2id.get(args.scale.lower(), args.model_id )
 
@@ -172,7 +172,7 @@ def parse_args():
     )
     p.add_argument("--max_length", default="4k", help="target context window, e.g., 4k, 8k, 16k")
     p.add_argument("--gpu", type=int, default=0)
-    p.add_argument("--scale", default="8b", choices=["1b", "3b", "8b", "70b"])
+    p.add_argument("--scale", default="3b", choices=["1b", "3b", "8b", "70b"])
     p.add_argument("--model_id", default=None, help="override model id (optional)")
 
     # Dataset filters (same semantics as old LEval script)

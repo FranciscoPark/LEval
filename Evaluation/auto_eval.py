@@ -73,7 +73,7 @@ class LEvalMetrics(evaluate.Metric):
             },
             "exact_match": lambda: {
                 "metric_fn": compute_exact_match,
-                "agg_fn": None,  # compute_exact_match already takes max
+                "agg_fn": None,  
                 "transform_result_fn": lambda output: {None: output},
             },
             "f1": lambda: {
@@ -391,7 +391,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # This script can calulate these metrics
     SUPPORT_METRICS = ["f1", "rouge", "exam"]
-
+    filename = os.path.basename(args.pred_file)        # "coursera.pred.jsonl"
+    task_name = filename.split(".")[0]
+    print(f"Evaluating task: {task_name}")
     # search for the prediction key
     pred_data = read_jsonl(args.pred_file)
     prediction_key = 0
