@@ -2,11 +2,11 @@ import math
 from functools import partial
 
 import torch
-from transformers import LlamaTokenizer, LlamaForCausalLM
+from transformers import LlamaTokenizer, AutoModelForCausalLM,AutoTokenizer
 import transformers
 # -*- coding:utf-8 -*-
 import argparse
-from llama_flash_attn_monkey_patch import replace_llama_attn_with_flash_attn
+# from llama_flash_attn_monkey_patch import replace_llama_attn_with_flash_attn
 from LEval_config import *
 from tqdm import tqdm
 
@@ -194,16 +194,25 @@ if __name__ == "__main__":
 
     max_length = k_to_number(args.max_length) - max_new_tokens
 
-    if args.flash:
-        replace_llama_attn_with_flash_attn()
-
-    data_save_path = f"Predictions/{args.metric}/{open_source_model}"
-    input(f"Your prediction file will be saved to: {data_save_path}  , press enter to confirm...")
+    # if args.flash:
+    #     replace_llama_attn_with_flash_attn()
+    data_save_path = f"/mnt/jy/LEval/Predictions/{args.metric}/{open_source_model}"
+    #make sure dir is existing
+    os.makedirs(data_save_path, exist_ok=True)
+    # data_save_path = f"Predictions/{args.metric}/{open_source_model}"
+    # input(f"Your prediction file will be saved to: {data_save_path}  , press enter to confirm...")
 
     device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
 
-    tokenizer = LlamaTokenizer.from_pretrained(model_path, trust_remote_code=True)
-    model = LlamaForCausalLM.from_pretrained(model_path, trust_remote_code=True, torch_dtype=torch.bfloat16).to(device)
+    # tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
+    tokenizer = AutoTokenizer.from_pretrained(
+        "/mnt/jy/LEval/Llama-2-7b-chat-hf",
+        use_fast=False,
+        legacy=True,   # optional; suppresses the warning cleanly
+        trust_remote_code=True,
+       
+    )
+    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/LEval/Llama-2-7b-chat-hf").to(device)
     model = model.eval()
 
     key_data_pairs = {}
