@@ -8,7 +8,7 @@ def read_jsonl(train_fn):
                 res.append(json.loads(line))
             except:
                 continue
-    print(f"loading from {train_fn}, there are {len(res)} samples")
+    # print(f"loading from {train_fn}, there are {len(res)} samples")
     return res
 
 

@@ -31,6 +31,20 @@ def num_tokens_from_string(string: str, tokenizer) -> int:
 def to_filename(data_save_path, task_name):
     return os.path.join(data_save_path, task_name + ".pred.jsonl")
 
+def build_key_data_pairs_llama3(args, key_data_pairs, data_save_path):
+    os.makedirs(f"Predictions/{args.metric}", exist_ok=True)
+    if ("llm" not in args.metric) and ("human" not in args.metric):
+        os.makedirs(data_save_path, exist_ok=True)
+
+        if args.mc_tasks:
+            files = [os.path.join("LEval-data/Closed-ended-tasks", f"{task_name}.jsonl") for task_name in with_option_tasks]
+            for file_path in files:
+                data = read_jsonl(file_path)
+                match = re.search(r'/([^/]*)\.jsonl', file_path)
+                file_name = match.group(1)
+                key_data_pairs[to_filename(data_save_path, file_name)] = data
+        
+
 
 def build_key_data_pairs(args, key_data_pairs, data_save_path):
     os.makedirs(f"Predictions/{args.metric}", exist_ok=True)
@@ -40,7 +54,7 @@ def build_key_data_pairs(args, key_data_pairs, data_save_path):
             data = load_dataset('L4NLP/LEval', args.task_name, split='test')
             key_data_pairs[to_filename(data_save_path, args.task_name)] = data
         elif args.mc_tasks:
-            files = [os.path.join("LEval-data/Closed-ended-tasks", f"{task_name}.jsonl") for task_name in with_option_tasks]
+            files = [os.path.join("/mnt/jy/LEval/LEval-data/Closed-ended-tasks", f"{task_name}.jsonl") for task_name in with_option_tasks]
             for file_path in files:
                 data = read_jsonl(file_path)
                 match = re.search(r'/([^/]*)\.jsonl', file_path)

@@ -40,8 +40,8 @@ def exact_match_score(prediction, ground_truth):
             if ground_truth.lower().replace(" ", "") in prediction.lower().replace(" ", ""):
                 res = 1
 
-    print(prediction, ground_truth, f"| score={res}")
-    print("=" * 20)
+    # print(prediction, ground_truth, f"| score={res}")
+    # print("=" * 20)
     return res
 
 

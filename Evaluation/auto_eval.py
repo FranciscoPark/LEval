@@ -12,6 +12,7 @@ from em import compute_exact_match
 from f1 import compute_f1
 import argparse
 import datasets
+import evaluate
 
 _DESCRIPTION = """\
 LEval is a suite of 18 datasets across multiple domains that require reasoning over long texts, including summarization, question answering, in-context learning with long CoT examples, topic retrieval, and paper writing assistance.
@@ -50,7 +51,7 @@ DATASET_TO_METRICS = {
 }
 
 
-class LEvalMetrics(datasets.Metric):
+class LEvalMetrics(evaluate.Metric):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -100,7 +101,7 @@ class LEvalMetrics(datasets.Metric):
             self._metrics_to_compute = DATASET_TO_METRICS[self.config_name]["metrics_to_compute"]
 
     def _info(self):
-        return datasets.MetricInfo(
+        return evaluate.MetricInfo(
             description=_DESCRIPTION,
             citation="",
             inputs_description=_KWARGS_DESCRIPTION,
@@ -443,39 +444,30 @@ if __name__ == '__main__':
             predictions.append(instance[prediction_key])
         config_name = instance["evaluation"]
     assert config_name is not None
-
     if config_name in SUPPORT_METRICS:
-        print("begin evaluating:", config_name)
+        print(f"begin evaluating: {config_name}")
         LEval_metric = LEvalMetrics(config_name=config_name)
+
+        # Handle multi-part evaluations (topic_retrieval_longchat / sci_fi)
         if "topic_retrieval_longchat" in args.pred_file:
-            output_str = ""
             balance_score = 0
             for i in range(len(predictions)):
-                pred = predictions[i]
-                ref = references[i]
-                metrics = LEval_metric.compute(predictions=pred, references=ref)
-                output_str += f"first {i+1} sentence retrieval score: {metrics}\n"
+                metrics = LEval_metric.compute(predictions=predictions[i], references=references[i])
                 balance_score += metrics["exact_match"]
-            print(output_str[:-1])
-            print(f"average score of the 1st/2nd/3rd sentence retrieval: {balance_score/3}")
+            final_score = balance_score / 3
 
         elif "sci_fi" in args.pred_file:
-            output_str = ""
             balance_score = 0
             for i in range(len(predictions)):
-                pred = predictions[i]
-                ref = references[i]
-                metrics = LEval_metric.compute(predictions=pred, references=ref)
-                if i ==0:
-                    output_str += f"loyalty score: {metrics}\n"
-                else:
-                    output_str += f"fact score: {metrics}"
+                metrics = LEval_metric.compute(predictions=predictions[i], references=references[i])
                 balance_score += metrics["exact_match"]
-            print(output_str)
-            print(f"average score of fact and loyalty: {balance_score/2}")
+            final_score = balance_score / 2
+
         else:
             metrics = LEval_metric.compute(predictions=predictions, references=references)
-            print(metrics)
+            final_score = metrics.get("LEval_score", list(metrics.values())[0])
+
+        # ✅ print only the score
+        print(f"LEval score: {final_score:.4f}")
     else:
-        print(config_name, "evaluation is not ready")
-        input("press enter to continue calculate other metrics")
+        print(f"{config_name} evaluation is not supported")
