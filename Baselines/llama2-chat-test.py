@@ -206,13 +206,13 @@ if __name__ == "__main__":
 
     # tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
     tokenizer = AutoTokenizer.from_pretrained(
-        "/mnt/jy/LEval/Llama-2-7b-chat-hf",
+        "/mnt/jy/Llama-2-7b-hf",
         use_fast=False,
         legacy=True,   # optional; suppresses the warning cleanly
         trust_remote_code=True,
        
     )
-    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/LEval/Llama-2-7b-chat-hf").to(device)
+    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/Llama-2-7b-hf").to(device)
     model = model.eval()
 
     key_data_pairs = {}
