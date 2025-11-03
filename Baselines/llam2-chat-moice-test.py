@@ -183,8 +183,8 @@ if __name__ == "__main__":
     parser.add_argument('--flash', action='store_true', help='set this if you want to use flash attention')
     args = parser.parse_args()
 
-    model_path = f"meta-llama/Llama-2-{args.scale}-hf-redo"
-    open_source_model = f"llama2-{args.scale}-redo-" + args.max_length
+    model_path = f"meta-llama/Llama-2-{args.scale}-hf-moice-redo"
+    open_source_model = f"llama2-{args.scale}-moice-redo-" + args.max_length
     if args.ntk_alpha > 1:
         open_source_model += f"-ntkFix{args.ntk_alpha}"
         replace_llama_with_ntkEmb()
@@ -206,13 +206,13 @@ if __name__ == "__main__":
 
     # tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
     tokenizer = AutoTokenizer.from_pretrained(
-        "/mnt/jy/Llama-2-7b-hf",
+        "/mnt/jy/custom/llama2-7b_moice",
         use_fast=False,
         legacy=True,   # optional; suppresses the warning cleanly
         trust_remote_code=True,
        
     )
-    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/Llama-2-7b-hf").to(device)
+    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/custom/llama2-7b_moice").to(device)
     model = model.eval()
 
     key_data_pairs = {}

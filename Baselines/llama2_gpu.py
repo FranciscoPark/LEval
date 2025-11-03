@@ -41,9 +41,9 @@ def build_prompt_llama2(system_prompt: str, user_prompt: str, tokenizer):
 def run_eval(args):
     # Choose model
     
-    model_path = "/mnt/jy/Llama-2-7b-hf"
+    model_path = "/mnt/jy/custom/llama2-7b_moice"
 
-    open_source_model = f"llama2-7b-{args.scale}-{args.max_length}"
+    open_source_model = f"llama2-7b-moice-{args.max_length}"
     data_save_path = f"/mnt/jy/LEval/Predictions/{args.metric}/{open_source_model}"
    #make sure dir is existing
     os.makedirs(data_save_path, exist_ok=True)
