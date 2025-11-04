@@ -203,16 +203,14 @@ if __name__ == "__main__":
     # input(f"Your prediction file will be saved to: {data_save_path}  , press enter to confirm...")
 
     # device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
-
-    # tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
     tokenizer = AutoTokenizer.from_pretrained(
-        "/mnt/jy/Llama-2-7b-hf",
+        "/mnt/jy/Llama-2-7b-chat-hf",
         use_fast=False,
         legacy=True,
         trust_remote_code=True,
        
     )
-    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/Llama-2-7b-hf",device_map="auto")
+    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/Llama-2-7b-chat-hf",device_map="auto")
     model = model.eval()
 
     key_data_pairs = {}
