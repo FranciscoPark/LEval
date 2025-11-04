@@ -130,7 +130,7 @@ def main():
                     text_inputs = message
                 save_d['prompt'] = message.replace(document, "<long document>")
 
-                inputs = tokenizer(text_inputs, return_tensors="pt").to(device)
+                inputs = tokenizer(text_inputs, return_tensors="pt").to(model.device)
                 sample = model.generate(**inputs, do_sample=False, max_new_tokens=max_new_tokens)
                 prompt_length = inputs.input_ids.size()[-1]
                 output = tokenizer.decode(sample[0][prompt_length:])
@@ -141,7 +141,7 @@ def main():
                 # test the factuality in scientific fiction
                 if "sci_fi" in file_name:
                     text_inputs = inst.replace("based on the world described in the document.", "based on the real-world knowledge and facts up until your last training") + "Please directly answer without any additional output or explanation. \nAnswer:"
-                    inputs = tokenizer(text_inputs, return_tensors="pt").to(device)
+                    inputs = tokenizer(text_inputs, return_tensors="pt").to(model.device)
                     sample = model.generate(**inputs, do_sample=False, max_new_tokens=max_new_tokens)
                     prompt_length = inputs.input_ids.size()[-1]
                     output = tokenizer.decode(sample[0][prompt_length:])
@@ -202,17 +202,17 @@ if __name__ == "__main__":
     # data_save_path = f"Predictions/{args.metric}/{open_source_model}"
     # input(f"Your prediction file will be saved to: {data_save_path}  , press enter to confirm...")
 
-    device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
 
     # tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
     tokenizer = AutoTokenizer.from_pretrained(
         "/mnt/jy/Llama-2-7b-hf",
         use_fast=False,
-        legacy=True,   # optional; suppresses the warning cleanly
+        legacy=True,
         trust_remote_code=True,
        
     )
-    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/Llama-2-7b-hf").to(device)
+    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/Llama-2-7b-hf",device_map="auto")
     model = model.eval()
 
     key_data_pairs = {}
