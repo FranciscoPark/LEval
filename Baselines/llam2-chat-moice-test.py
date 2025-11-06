@@ -2,7 +2,7 @@ import math
 from functools import partial
 
 import torch
-from transformers import LlamaTokenizer, AutoModelForCausalLM,AutoTokenizer
+from custom_attn.modeling_llama import LlamaForCausalLM
 import transformers
 # -*- coding:utf-8 -*-
 import argparse
@@ -183,8 +183,8 @@ if __name__ == "__main__":
     parser.add_argument('--flash', action='store_true', help='set this if you want to use flash attention')
     args = parser.parse_args()
 
-    model_path = f"meta-llama/Llama-2-{args.scale}-hf-rerun"
-    open_source_model = f"llama2-{args.scale}-rerun-" + args.max_length
+    model_path = f"meta-llama/Llama-2-7b-moice"
+    open_source_model = f"llama2-7b-moice-" + args.max_length
     if args.ntk_alpha > 1:
         open_source_model += f"-ntkFix{args.ntk_alpha}"
         replace_llama_with_ntkEmb()
@@ -203,14 +203,14 @@ if __name__ == "__main__":
     # input(f"Your prediction file will be saved to: {data_save_path}  , press enter to confirm...")
 
     # device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
-    tokenizer = AutoTokenizer.from_pretrained(
-        "/mnt/jy/llama2_7b_local",
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+        "/mnt/jy/custom/llama2-7b-moice_baseline",
         use_fast=False,
         legacy=True,
         trust_remote_code=True,
        
     )
-    model = AutoModelForCausalLM.from_pretrained("/mnt/jy/llama2_7b_local",device_map="auto")
+    model = LlamaForCausalLM("/mnt/jy/custom/llama2-7b-moice_baseline",device_map="auto")
     model = model.eval()
 
     key_data_pairs = {}
