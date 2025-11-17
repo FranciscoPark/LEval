@@ -51,7 +51,7 @@ def build_key_data_pairs(args, key_data_pairs, data_save_path):
     if ("llm" not in args.metric) and ("human" not in args.metric):
         os.makedirs(data_save_path, exist_ok=True)
         if args.task_name:
-            data = load_dataset('L4NLP/LEval', args.task_name, split='test')
+            data = load_dataset('L4NLP/LEval', args.task_name, split='test', download_mode="force_redownload")
             key_data_pairs[to_filename(data_save_path, args.task_name)] = data
         elif args.mc_tasks:
             files = [os.path.join("/mnt/jy/LEval/LEval-data/Closed-ended-tasks", f"{task_name}.jsonl") for task_name in with_option_tasks]
@@ -75,13 +75,13 @@ def build_key_data_pairs(args, key_data_pairs, data_save_path):
             else:
                 datasets_eval = datasets_closed_ended
             for task_name in datasets_eval:
-                data = load_dataset('L4NLP/LEval', task_name, split='test')
+                data = load_dataset('L4NLP/LEval', task_name, split='test', download_mode="force_redownload")
                 data = [d for d in data if d["evaluation"] != "human" and d["evaluation"] != "LLM"]
                 key_data_pairs[to_filename(data_save_path, task_name)] = data
     else:
         for gen_data in datasets_open_ended:
             try:
-                data = load_dataset('L4NLP/LEval', gen_data, split='test')
+                data = load_dataset('L4NLP/LEval', gen_data, split='test', download_mode="force_redownload")
             except:
                 data = read_jsonl(f"LEval-data/Open-ended-tasks/{gen_data}.jsonl")
             if args.metric == "llm_turbo_eval":

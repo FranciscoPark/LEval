@@ -204,13 +204,13 @@ if __name__ == "__main__":
 
     # device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
     tokenizer = transformers.AutoTokenizer.from_pretrained(
-        "/mnt/jy/custom/llama2-7b-moice_baseline",
+        "/mnt/jy/custom/llama2-7b_moice",
         use_fast=False,
         legacy=True,
         trust_remote_code=True,
        
     )
-    model = LlamaForCausalLM("/mnt/jy/custom/llama2-7b-moice_baseline",device_map="auto")
+    model = LlamaForCausalLM.from_pretrained("/mnt/jy/custom/llama2-7b_moice",device_map="auto")
     model = model.eval()
 
     key_data_pairs = {}

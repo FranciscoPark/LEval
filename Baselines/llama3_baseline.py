@@ -22,7 +22,6 @@ from LEval_config import (
 )
 import os
 
-
 def build_prompt(system_prompt: str, user_prompt: str, tokenizer):
     """
     Construct a chat-formatted prompt for Llama-3.x Instruct models
@@ -61,11 +60,12 @@ def run_eval(args):
 
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         trust_remote_code=True,
         device_map="auto",
     )
     model.eval()
+    
     
     device = next(model.parameters()).device
 
@@ -125,7 +125,8 @@ def run_eval(args):
                     )
                     prompt_len = inputs.input_ids.shape[-1]
                     pred = tokenizer.decode(gen[0][prompt_len:], skip_special_tokens=True)
-
+                    
+                    
                     model_tag = f"llama3-{args.scale}_pred"
                     save_d[model_tag] = pred
                     save_d["evaluation"] = d.get("evaluation", {})
@@ -170,7 +171,7 @@ def parse_args():
         choices=["llm_turbo_eval", "llm_gpt4_eval", "exam_eval", "ngram_eval", "human_eval"],
         required=True,
     )
-    p.add_argument("--max_length", default="4k", help="target context window, e.g., 4k, 8k, 16k")
+    p.add_argument("--max_length", default="8k", help="target context window, e.g., 4k, 8k, 16k")
     p.add_argument("--gpu", type=int, default=0)
     p.add_argument("--scale", default="3b", choices=["1b", "3b", "8b", "70b"])
     p.add_argument("--model_id", default=None, help="override model id (optional)")
