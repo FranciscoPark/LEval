@@ -12,7 +12,7 @@ import argparse
 import json
 import torch
 from tqdm import tqdm
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
 from LEval_config import (
     build_key_data_pairs,
     get_sys_prompt,
@@ -43,6 +43,18 @@ def build_prompt(system_prompt: str, user_prompt: str, tokenizer):
         add_generation_prompt=True
     )
 
+def load_head_stats(stats_path):
+    """
+    stats_path: path to qk_stats.json
+    returns: dict[int -> list[int]]  (layer_idx -> sorted_heads)
+    """
+    data = json.load(open(stats_path))
+    agg = data["aggregate"]
+    
+    head_stats = {}
+    for layer, info in agg.items():
+        head_stats[int(layer)] = info["sorted_heads"]
+    return head_stats
 
 def run_eval(args):
     # Choose model
@@ -54,10 +66,25 @@ def run_eval(args):
     }
     model_path = scale2id.get(args.scale.lower(), args.model_id)
 
-    open_source_model = f"llama3-{args.scale}-{args.max_length}"
+    open_source_model = f"llama3-{args.scale}-{args.max_length}-headmasked"
     data_save_path = f"/mnt/jy/LEval/Predictions/{args.metric}/{open_source_model}"
     os.makedirs(data_save_path, exist_ok=True)
     print(f"[Info] Predictions will be saved under: {data_save_path}")
+
+    #head stats for masking
+    stats_path = args.stats_path
+    head_stats = load_head_stats(stats_path)
+
+    print("[Info] Loaded head stats for masking:")
+    print({k: v[:3] for k, v in head_stats.items()})
+    # Load model config
+    config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
+
+    # Patch config with head stats    
+    config.head_stats = head_stats      # dict[layer_idx -> sorted_heads]
+    config.nnope = args.nnope           # e.g., 4 bottom heads use NOPE
+
+    print(f"[Info] Masking bottom {args.nnope} heads per layer.")
 
     # Load tokenizer and model
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
@@ -66,19 +93,20 @@ def run_eval(args):
 
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
+        config=config,
         dtype=torch.bfloat16,
         trust_remote_code=True,
         device_map="auto",
-        attn_implementation="eager",
+        attn_implementation="sdpa",
     )
     model.eval()
 
     # ----------------------------
     # Attach attention hooks
     # ----------------------------
-    attention_analyzer = LlamaAttentionHook()
-    attention_analyzer.attach(model)
-    print("[Info] Attention hooks attached!")
+    # attention_analyzer = LlamaAttentionHook()
+    # attention_analyzer.attach(model)
+    # print("[Info] Attention hooks attached!")
 
     device = next(model.parameters()).device
 
@@ -144,8 +172,8 @@ def run_eval(args):
                     # ----------------------------
                     # collect attention stats for this step
                     # ----------------------------
-                    step_stats = attention_analyzer.get_and_clear()
-                    save_d["attention_stats"] = step_stats
+                    # step_stats = attention_analyzer.get_and_clear()
+                    # save_d["attention_stats"] = step_stats
 
                     model_tag = f"llama3-{args.scale}_pred"
                     save_d[model_tag] = pred
@@ -196,10 +224,14 @@ def parse_args():
         choices=["llm_turbo_eval", "llm_gpt4_eval", "exam_eval", "ngram_eval", "human_eval"],
         required=True,
     )
-    p.add_argument("--max_length", default="8k", help="target context window, e.g., 4k, 8k, 16k")
+    p.add_argument("--max_length", default="16k", help="target context window, e.g., 4k, 8k, 16k")
     p.add_argument("--gpu", type=int, default=0)
     p.add_argument("--scale", default="3b", choices=["1b", "3b", "8b", "70b"])
     p.add_argument("--model_id", default=None, help="override model id (optional)")
+    p.add_argument("--nnope", type=int, default=4,
+                   help="number of bottom heads to NOPE-mask per layer")
+    p.add_argument("--stats_path", type=str, required=False, default="/mnt/jy/LEval/Predictions/exam_eval/llama3-3b-8k_run/tpo_qk_stats.json",
+                   help="path to qk_stats.json for head masking")
 
     # Dataset filters
     p.add_argument('--task_path', type=str, default=None,

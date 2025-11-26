@@ -181,9 +181,9 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--metric", required=True,
                    choices=["llm_turbo_eval", "llm_gpt4_eval", "exam_eval", "ngram_eval", "human_eval"])
-    p.add_argument("--max_length", default="8k")
+    p.add_argument("--max_length", default="16k")
     p.add_argument("--gpu", type=int, default=0)
-    p.add_argument("--scale", default="3b",
+    p.add_argument("--scale", default="8b",
                    choices=["1b", "3b", "8b", "70b"])
     p.add_argument("--model_id", default=None)
 
